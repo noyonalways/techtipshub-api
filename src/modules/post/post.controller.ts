@@ -57,26 +57,11 @@ const getLoggedInUserPosts = catchAsync(async (req, res) => {
   });
 });
 
-// get access free blog post if premium then pass to next controller / middleware
-const getFreeSinglePost = catchAsync<TRouteParams>(async (req, res, next) => {
+// get a single post by slug.
+// Guests receive a preview; logged-in users receive the full article.
+const getSinglePost = catchAsync<TRouteParams>(async (req, res) => {
   const { slug } = req.params;
-  const post = await postService.getPostByProperty("slug", slug);
-
-  if (!post.isPremium) {
-    return sendResponse(res, {
-      success: true,
-      statusCode: httpStatus.OK,
-      message: "Post retrieved successfully",
-      data: post,
-    });
-  }
-
-  next();
-});
-
-const getPremiumSinglePost = catchAsync<TRouteParams>(async (req, res) => {
-  const { slug } = req.params;
-  const result = await postService.getPremiumSinglePost(req.user, slug);
+  const result = await postService.getSinglePost(req.user, slug);
 
   sendResponse(res, {
     success: true,
@@ -228,8 +213,7 @@ export const postController = {
   create,
   getAll,
   getLoggedInUserPosts,
-  getFreeSinglePost,
-  getPremiumSinglePost,
+  getSinglePost,
   voteOnPost,
   commentOnPost,
   getAllCommentsByPostId,

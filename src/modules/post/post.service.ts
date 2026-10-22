@@ -9,24 +9,18 @@ import { IComment } from "../comment/comment.interface";
 import Comment from "../comment/comment.model";
 import Follower from "../follower/follower.model";
 import User from "../user/user.model";
+import { recordView } from "../view/view.service";
 import View from "../view/view.model";
 import Vote from "../vote/vote.model";
 import { postSearchableFields } from "./post.constant";
 import { IPost } from "./post.interface";
 import Post from "./post.model";
-import { generateUniqueSlug, isPremiumSubscriptionActive } from "./post.utils";
+import { generateUniqueSlug } from "./post.utils";
 
 const create = async (userData: JwtPayload, payload: IPost) => {
   const user = await User.findOne({ email: userData.email });
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "User not found");
-  }
-
-  if (!user.isPremiumUser && payload.isPremium) {
-    throw new AppError(
-      httpStatus.FORBIDDEN,
-      "Only premium membership user can post premium posts, please subscribe premium subscription first",
-    );
   }
 
   const category = await Category.findById(payload.category);
@@ -172,7 +166,9 @@ const getLoggedInUserPosts = async (
   }
 
   const postQuery = new QueryBuilder(
-    Post.find({ author: user._id }).populate("author").populate("category"),
+    Post.find({ author: user._id, isDeleted: { $ne: true } })
+      .populate("author")
+      .populate("category"),
     query,
   ).search(postSearchableFields);
 
@@ -215,22 +211,15 @@ const getPostByProperty = async (key: string, value: string) => {
   return post;
 };
 
-// get premium single post
-const getPremiumSinglePost = async (userData: JwtPayload, slug: string) => {
+// get a single post by slug.
+// Guests get a preview: the article body is withheld and `isLocked` is true.
+// Logged-in users get the full article and a view is recorded for them.
+const getSinglePost = async (userData: JwtPayload | undefined, slug: string) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    // Get the current logged-in user
-    const currentLoggedInUser = await User.findOne({
-      email: userData.email,
-    }).session(session);
-
-    if (!currentLoggedInUser) {
-      throw new AppError(httpStatus.NOT_FOUND, "User not found");
-    }
-
-    // Fetch the post by its ID
+    // Fetch the post by its slug
     const post = await Post.findOne({ slug })
       .populate({
         path: "author",
@@ -245,60 +234,41 @@ const getPremiumSinglePost = async (userData: JwtPayload, slug: string) => {
       throw new AppError(httpStatus.NOT_FOUND, "Post not found");
     }
 
-    if (currentLoggedInUser.role === "Admin") {
-      return post;
-    }
-
-    // Allow access if the current user is the post author
-    if (post.author._id.equals(currentLoggedInUser._id)) {
+    // Guest visitors can see everything but the article body
+    if (!userData?.email) {
       await session.commitTransaction();
       session.endSession();
-      return post; // No need to record views for the author
+
+      const preview = post.toObject() as Partial<IPost> & { isLocked?: boolean };
+      preview.isLocked = true;
+      delete preview.content;
+
+      return preview;
     }
 
-    // Check if the user is a premium user
-    const isPremiumUser = currentLoggedInUser.isPremiumUser;
-    if (!isPremiumUser) {
-      throw new AppError(
-        httpStatus.FORBIDDEN,
-        "Premium content access is for premium members only",
-      );
-    }
-
-    // Verify if the user's subscription is active
-    const subscriptionActive = await isPremiumSubscriptionActive(
-      currentLoggedInUser._id,
-    );
-
-    if (!subscriptionActive) {
-      throw new AppError(
-        httpStatus.FORBIDDEN,
-        "Your subscription is inactive or expired. Please renew to access premium content.",
-      );
-    }
-
-    // Ensure the user has not already viewed the post
-    const existingView = await View.findOne({
-      post: post._id,
-      user: currentLoggedInUser._id,
+    // Get the current logged-in user
+    const currentLoggedInUser = await User.findOne({
+      email: userData.email,
     }).session(session);
 
-    if (!existingView) {
-      // Record the view if it's a new view by the user (excluding the author)
-      await View.create([{ post: post._id, user: currentLoggedInUser._id }], {
-        session,
-      });
-
-      // Increment the view count in the post
-      post.totalViews += 1;
-      await post.save({ session });
+    if (!currentLoggedInUser) {
+      throw new AppError(httpStatus.NOT_FOUND, "User not found");
     }
+
+    // Record the view (once per reader, never for the author) and return the
+    // reconciled total. This runs outside the read transaction so a concurrent
+    // duplicate view can never abort the article fetch itself.
+    const totalViews = await recordView(slug, { user: userData });
 
     // Commit transaction and return the post
     await session.commitTransaction();
     session.endSession();
 
-    return post;
+    return {
+      ...post.toObject(),
+      totalViews: totalViews ?? post.totalViews,
+      isLocked: false,
+    };
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
@@ -477,8 +447,14 @@ const commentOnPost = async (
       { session },
     );
 
-    // Increment the totalComments field on the post
-    post.totalComments += 1;
+    // Keep the stored counter equal to the number of visible comments rather
+    // than incrementing blindly, so edits and removals can never drift it.
+    // The count must join the transaction, or the new comment is not visible to
+    // it and the counter is written back as zero.
+    post.totalComments = await Comment.countDocuments({
+      post: post._id,
+      isDeleted: { $ne: true },
+    }).session(session);
     await post.save({ session });
 
     // Commit the transaction
@@ -513,8 +489,12 @@ const getAllCommentsByPostId = async (
     throw new AppError(httpStatus.NOT_FOUND, "Post not found");
   }
 
+  // Only visible comments: a soft-deleted comment stays in the collection for
+  // moderation history, but it must not appear in the list or the count.
   const commentQuery = new QueryBuilder(
-    Comment.find({ post: post._id }).populate("user").populate("post"),
+    Comment.find({ post: post._id, isDeleted: { $ne: true } })
+      .populate("user")
+      .populate("post"),
     query,
   );
 
@@ -540,19 +520,33 @@ const getAllPostsByUserId = async (
     throw new AppError(httpStatus.NOT_FOUND, "User not found");
   }
 
+  // The author's real article count is the source of truth for a profile, so it
+  // cannot lag behind like the stored `user.totalPosts` counter did. Deleted
+  // posts are not on the list, so they must not be in its total either.
+  const visibleFilter = { author: user._id, isDeleted: { $ne: true } };
+  const total = await Post.countDocuments(visibleFilter);
+
   const postQuery = new QueryBuilder(
-    Post.find({ author: user._id }).populate("author").populate("category"),
+    Post.find(visibleFilter).populate("author").populate("category"),
     query,
   ).search(postSearchableFields);
 
   // Await the filter() method
   await postQuery.filter();
 
-  // Now you can safely call sort, paginate, and fields
-  postQuery.sort().paginate().fields();
+  // Newest first: the default sort only applies when the caller doesn't ask
+  // for something else, and `createdAt` alone can tie within one millisecond.
+  if (!query.sort) {
+    postQuery.sortBy("-createdAt,-_id");
+  } else {
+    postQuery.sort();
+  }
+
+  postQuery.paginate().fields();
 
   const result = await postQuery.modelQuery; // Await the results here
   const meta = await postQuery.countTotal();
+  meta.total = total;
 
   return { result, meta };
 };
@@ -744,7 +738,7 @@ export const postService = {
   create,
   getAll,
   getLoggedInUserPosts,
-  getPremiumSinglePost,
+  getSinglePost,
   getPostByProperty,
   voteOnPost,
   commentOnPost,

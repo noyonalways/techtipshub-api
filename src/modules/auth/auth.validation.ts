@@ -50,7 +50,7 @@ const changePassword = z.object({
       oldPassword: z.string({ error: "Old password must be a string" }),
       newPassword: z
         .string({ error: "New password must be a string" })
-        .min(6, "New password must be at least 8 characters"),
+        .min(6, "New password must be at least 6 characters"),
     })
     .strict(),
 });
@@ -66,10 +66,9 @@ const forgetPassword = z.object({
 const resetPassword = z.object({
   body: z
     .object({
-      email: z.string({ error: "Email must be a string" }),
       newPassword: z
         .string({ error: "New password must be a string" })
-        .min(6, "New password must be at least 8 characters"),
+        .min(6, "New password must be at least 6 characters"),
     })
     .strict(),
 });

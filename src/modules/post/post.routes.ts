@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { multerUpload } from "../../config/multer.config";
 import { USER_ROLE } from "../../constant";
-import { auth, validateRequest } from "../../middlewares";
+import { auth, optionalAuth, validateRequest } from "../../middlewares";
 import { catchAsync } from "../../utils";
 import { commentValidationSchema } from "../comment/comment.validation";
 import { postController } from "./post.controller";
@@ -46,14 +46,11 @@ postRouter.get(
   postController.getLoggedInUserPosts,
 );
 
-// get single post by post slug
+// get single post by post slug (open to guests; full body for logged-in users)
 postRouter.get(
   "/:slug",
-  // access only free blog post
-  postController.getFreeSinglePost,
-  auth(USER_ROLE.USER, USER_ROLE.ADMIN),
-  // access premium blog post
-  postController.getPremiumSinglePost,
+  optionalAuth,
+  postController.getSinglePost,
 );
 
 // delete a post by post id;

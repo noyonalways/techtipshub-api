@@ -36,9 +36,4 @@ export default {
   cloud_name: process.env.CLOUD_NAME,
   cloudinary_api_key: process.env.CLOUDINARY_API_KEY,
   cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET,
-
-  // aamarpay payment gateway
-  aamarpay_gateway_base_url: process.env.AAMARPAY_GATEWAY_BASE_URL,
-  aamarpay_store_id: process.env.AAMARPAY_STORE_ID,
-  aamarpay_signature_key: process.env.AAMARPAY_SIGNATURE_KEY,
 };

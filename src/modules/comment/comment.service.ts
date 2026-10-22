@@ -20,15 +20,19 @@ const deleteComment = async (commentId: string) => {
       throw new AppError(httpStatus.NOT_FOUND, "Comment not found");
     }
 
-    // Check if the associated post exists
-    const post = await Post.findByIdAndUpdate(
-      comment.post,
-      { $inc: { totalComments: -1 } },
-      { session, new: true },
-    );
+    // Check if the associated post exists and re-count its visible comments.
+    // The read joins the transaction so it sees this comment as deleted; on its
+    // own it would count the old state and write the counter back unchanged.
+    const post = await Post.findById(comment.post).session(session);
     if (!post) {
       throw new AppError(httpStatus.NOT_FOUND, "Associated post not found");
     }
+
+    post.totalComments = await Comment.countDocuments({
+      post: post._id,
+      isDeleted: { $ne: true },
+    }).session(session);
+    await post.save({ session });
 
     await session.commitTransaction();
 

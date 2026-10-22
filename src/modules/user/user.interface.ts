@@ -37,7 +37,6 @@ export interface IUser extends Document {
   location: string;
   dateOfBirth: Date;
   isVerified: boolean;
-  isPremiumUser: boolean;
   isDeleted: boolean;
 }
 

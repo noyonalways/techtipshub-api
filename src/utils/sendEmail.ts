@@ -1,19 +1,30 @@
 import nodemailer from "nodemailer";
 import config from "../config";
 
+const port = Number(process.env.SMTP_PORT) || 465;
+
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: config.NODE_ENV === "production",
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
+  port,
+  secure: port === 465,
   auth: {
     user: config.smtp_auth_user,
     pass: config.smtp_auth_password,
   },
   tls: {
     rejectUnauthorized: false,
-    ciphers: "SSLv3",
   },
 });
+
+/**
+ * Whether outgoing mail can actually be sent. True only when a real SMTP user
+ * is configured; the example value ("your_smtp_auth_user_email") is treated as
+ * missing. Callers that must not claim a delivery check this first.
+ */
+const isEmailConfigured = () => {
+  const user = String(config.smtp_auth_user ?? "").trim();
+  return Boolean(user && user.includes("@") && !user.startsWith("your_"));
+};
 
 type TSendEmail = {
   to: {
@@ -25,7 +36,7 @@ type TSendEmail = {
   html: string;
   /**
    * When true, a failed send rejects instead of being logged and swallowed.
-   * Legacy flows (password reset, payments) rely on the old best-effort
+   * Legacy flows (password reset) rely on the old best-effort
    * behaviour, so this defaults to false.
    */
   throwOnError?: boolean;
@@ -63,3 +74,4 @@ const sendEmail = async ({
 };
 
 export default sendEmail;
+export { isEmailConfigured };

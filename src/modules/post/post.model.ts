@@ -51,10 +51,6 @@ const postSchema = new Schema<IPost>(
       required: [true, "Tags are required"],
       default: [],
     },
-    isPremium: {
-      type: Boolean,
-      default: false,
-    },
     upVotes: {
       type: Number,
       default: 0,

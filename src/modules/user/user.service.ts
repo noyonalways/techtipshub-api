@@ -6,9 +6,7 @@ import { USER_ROLE, USER_STATUS } from "../../constant";
 import { AppError } from "../../errors";
 import Comment from "../comment/comment.model";
 import Follower from "../follower/follower.model";
-import Payment from "../payment/payment.model";
 import Post from "../post/post.model";
-import Subscription from "../subscription/subscription.model";
 import View from "../view/view.model";
 import Vote from "../vote/vote.model";
 import { IUser, TSocialLink } from "./user.interface";
@@ -214,11 +212,7 @@ const deleteUserAccount = async (id: string) => {
     await Follower.deleteMany({ follower: user._id }, { session });
     await Follower.deleteMany({ following: user._id }, { session });
 
-    // 6. Delete user's payments and subscriptions
-    await Payment.deleteMany({ user: user._id }, { session });
-    await Subscription.deleteMany({ user: user._id }, { session });
-
-    // 7. Mark the user as deleted
+    // 6. Mark the user as deleted
     user.isDeleted = true;
     await user.save({ session });
 

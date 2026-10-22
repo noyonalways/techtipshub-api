@@ -25,7 +25,6 @@ const create = z.object({
       tags: z.array(z.string({ error: "Tag must be a string" }), {
         error: "Tags must be an array of string",
       }),
-      isPremium: z.boolean({ error: "Is Premium must be a boolean" }),
     })
     .strict(),
 });

@@ -12,7 +12,6 @@ export interface IPost extends Document {
   images: string[];
   category: Types.ObjectId;
   tags: string[];
-  isPremium: boolean;
   upVotes: number;
   downVotes: number;
   totalViews: number;

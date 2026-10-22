@@ -63,6 +63,13 @@ class QueryBuilder<T> {
     return this;
   }
 
+  /** Set an explicit sort string (comma-separated field list). */
+  sortBy(sort: string) {
+    this.modelQuery = this.modelQuery.sort(sort.split(",").join(" "));
+
+    return this;
+  }
+
   paginate() {
     const page = Number(this?.query?.page) || 1;
     const limit = Number(this?.query?.limit) || 10;

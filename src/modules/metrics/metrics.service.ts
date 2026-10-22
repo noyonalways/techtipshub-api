@@ -1,6 +1,5 @@
 import { format, startOfMonth, subMonths } from "date-fns";
 import Comment from "../comment/comment.model";
-import Payment from "../payment/payment.model";
 import Post from "../post/post.model";
 import User from "../user/user.model";
 import View from "../view/view.model";
@@ -117,51 +116,6 @@ const dashboard = async () => {
     type: determineType(currentMonthViews, lastMonthViews),
   };
 
-  // Fetch total revenue where status is 'Paid'
-  const totalRevenue = await Payment.aggregate([
-    { $match: { status: "Paid" } }, // Filter for 'Paid' status
-    { $group: { _id: null, total: { $sum: "$amount" } } }, // Sum the amount field
-  ]);
-
-  const totalRevenueAmount =
-    totalRevenue.length > 0 ? totalRevenue[0].total : 0;
-
-  // Current Month Revenue where status is 'Paid'
-  const currentMonthRevenue = await Payment.aggregate([
-    { $match: { status: "Paid", createdAt: { $gte: currentMonthStart } } }, // Filter for 'Paid' status
-    { $group: { _id: null, total: { $sum: "$amount" } } }, // Sum the amount field
-  ]);
-
-  const currentMonthRevenueAmount =
-    currentMonthRevenue.length > 0 ? currentMonthRevenue[0].total : 0;
-
-  // Last Month Revenue where status is 'Paid'
-  const lastMonthRevenue = await Payment.aggregate([
-    {
-      $match: {
-        status: "Paid",
-        createdAt: {
-          $gte: subMonths(currentMonthStart, 1),
-          $lt: currentMonthStart,
-        },
-      },
-    }, // Filter for 'Paid' status
-    { $group: { _id: null, total: { $sum: "$amount" } } }, // Sum the amount field
-  ]);
-
-  const lastMonthRevenueAmount =
-    lastMonthRevenue.length > 0 ? lastMonthRevenue[0].total : 0;
-
-  const revenueData = {
-    total: totalRevenueAmount,
-    currentMonth: currentMonthRevenueAmount,
-    lastMonthDiff: calculatePercentageDiff(
-      currentMonthRevenueAmount,
-      lastMonthRevenueAmount,
-    ),
-    type: determineType(currentMonthRevenueAmount, lastMonthRevenueAmount),
-  };
-
   const totalUsers = await User.countDocuments();
   const currentMonthUsers = await User.countDocuments({
     createdAt: { $gte: currentMonthStart },
@@ -206,7 +160,6 @@ const dashboard = async () => {
       posts: 0,
       comments: 0,
       users: 0,
-      revenue: 0,
       upvotes: 0,
       downvotes: 0,
     };
@@ -222,7 +175,6 @@ const dashboard = async () => {
       monthlyPosts,
       monthlyComments,
       monthlyUsers,
-      monthlyRevenue,
       monthlyUpvotes,
       monthlyDownvotes,
     ] = await Promise.all([
@@ -230,23 +182,9 @@ const dashboard = async () => {
       getMonthlyCount(Post, null, monthStart, monthEnd),
       getMonthlyCount(Comment, null, monthStart, monthEnd),
       getMonthlyCount(User, null, monthStart, monthEnd),
-      // Fetch the total revenue for the month
-      Payment.aggregate([
-        {
-          $match: {
-            status: "Paid",
-            createdAt: { $gte: monthStart, $lt: monthEnd },
-          },
-        },
-        { $group: { _id: null, total: { $sum: "$amount" } } },
-      ]),
       getMonthlyCount(Vote, "upvote", monthStart, monthEnd),
       getMonthlyCount(Vote, "downvote", monthStart, monthEnd),
     ]);
-
-    // Extract revenue amount from the aggregation result
-    const revenueAmount =
-      monthlyRevenue.length > 0 ? monthlyRevenue[0].total : 0;
 
     chartData[i] = {
       name: format(monthStart, "MMM"), // Month name
@@ -254,7 +192,6 @@ const dashboard = async () => {
       posts: monthlyPosts,
       comments: monthlyComments,
       users: monthlyUsers,
-      revenue: revenueAmount,
       upvotes: monthlyUpvotes,
       downvotes: monthlyDownvotes,
     };
@@ -265,7 +202,6 @@ const dashboard = async () => {
     downvotes: downvotesData,
     comments: commentsData,
     views: viewsData,
-    revenue: revenueData,
     users: usersData,
     posts: postsData,
     chartData: chartData,

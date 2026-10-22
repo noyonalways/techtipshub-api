@@ -124,10 +124,6 @@ const userSchema = new Schema<IUser, IUserModel>(
       type: Boolean,
       default: false,
     },
-    isPremiumUser: {
-      type: Boolean,
-      default: false,
-    },
     isDeleted: {
       type: Boolean,
       default: false,
