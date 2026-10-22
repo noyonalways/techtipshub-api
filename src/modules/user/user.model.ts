@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import type { SignOptions } from "jsonwebtoken";
 import { model, Schema } from "mongoose";
 import config from "../../config";
 import {
@@ -186,7 +187,9 @@ userSchema.statics.createToken = function (
   expiresIn: string,
 ) {
   return jwt.sign(jwtPayload, secret, {
-    expiresIn,
+    // expiresIn comes from env vars, which are typed as plain `string`;
+    // jsonwebtoken's SignOptions wants the `ms` StringValue union ("15m", "7d").
+    expiresIn: expiresIn as SignOptions["expiresIn"],
   });
 };
 

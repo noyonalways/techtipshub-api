@@ -1,6 +1,7 @@
 import httpStatus from "http-status";
 import { catchAsync, sendResponse } from "../../utils";
 import { categoryService } from "./category.service";
+import type { TRouteParams } from "../../interface/params";
 
 const create = catchAsync(async (req, res) => {
   const result = await categoryService.create(req.body);
@@ -25,7 +26,7 @@ const getAll = catchAsync(async (req, res) => {
   });
 });
 
-const getSingleCategory = catchAsync(async (req, res) => {
+const getSingleCategory = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
   const result = await categoryService.getSingleCategory(id);
 
@@ -37,7 +38,7 @@ const getSingleCategory = catchAsync(async (req, res) => {
   });
 });
 
-const deleteSingleCategory = catchAsync(async (req, res) => {
+const deleteSingleCategory = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
   const result = await categoryService.deleteSingleCategory(id);
 

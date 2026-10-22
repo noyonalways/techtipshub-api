@@ -1,8 +1,9 @@
 import httpStatus from "http-status";
 import { catchAsync, sendResponse } from "../../utils";
 import { commentService } from "./comment.service";
+import type { TRouteParams } from "../../interface/params";
 
-const deleteComment = catchAsync(async (req, res) => {
+const deleteComment = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
 
   const result = await commentService.deleteComment(id);
@@ -15,7 +16,7 @@ const deleteComment = catchAsync(async (req, res) => {
   });
 });
 
-const updateComment = catchAsync(async (req, res) => {
+const updateComment = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
 
   const result = await commentService.updateComment(id, req.body);

@@ -1,6 +1,7 @@
 import httpStatus from "http-status";
 import { catchAsync, sendResponse } from "../../utils";
 import { userService } from "./user.service";
+import type { TRouteParams } from "../../interface/params";
 
 // get all users (admin only)
 const getAllUsers = catchAsync(async (req, res) => {
@@ -15,7 +16,7 @@ const getAllUsers = catchAsync(async (req, res) => {
   });
 });
 
-const getSingleUserByUsername = catchAsync(async (req, res) => {
+const getSingleUserByUsername = catchAsync<TRouteParams>(async (req, res) => {
   const { username } = req.params;
   const result = await userService.getSingleUserByUsername(username);
 
@@ -51,7 +52,7 @@ const updateSocialLinks = catchAsync(async (req, res) => {
 });
 
 // block user (only admin)
-const blockUser = catchAsync(async (req, res) => {
+const blockUser = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
 
   const result = await userService.blockUser(id);
@@ -65,7 +66,7 @@ const blockUser = catchAsync(async (req, res) => {
 });
 
 // unblock user (only admin)
-const unBlockUser = catchAsync(async (req, res) => {
+const unBlockUser = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
 
   const result = await userService.unBlockUser(id);
@@ -79,7 +80,7 @@ const unBlockUser = catchAsync(async (req, res) => {
 });
 
 // make a user to admin (admin only)
-const makeAdmin = catchAsync(async (req, res) => {
+const makeAdmin = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
 
   const result = await userService.makeAdmin(id);
@@ -93,7 +94,7 @@ const makeAdmin = catchAsync(async (req, res) => {
 });
 
 // delete user account (admin only)
-const deleteUserAccount = catchAsync(async (req, res) => {
+const deleteUserAccount = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
 
   const result = await userService.deleteUserAccount(id);
@@ -107,7 +108,7 @@ const deleteUserAccount = catchAsync(async (req, res) => {
 });
 
 // follow user
-const followUser = catchAsync(async (req, res) => {
+const followUser = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params; // user id want's to follow
   const result = await userService.followUser(req.user, id);
 
@@ -120,7 +121,7 @@ const followUser = catchAsync(async (req, res) => {
 });
 
 // unfollow user
-const unfollowUser = catchAsync(async (req, res) => {
+const unfollowUser = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params; // user id want's to follow
   const result = await userService.unfollowUser(req.user, id);
 
@@ -133,7 +134,7 @@ const unfollowUser = catchAsync(async (req, res) => {
 });
 
 // get follow status
-const getFollowStatus = catchAsync(async (req, res) => {
+const getFollowStatus = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params; // user id want's to follow
   const isFollowing = await userService.getFollowStatus(req.user, id);
 
@@ -178,7 +179,7 @@ const getLoggedInUserFollowing = catchAsync(async (req, res) => {
 });
 
 // get followers by user id
-const getFollowersByUserId = catchAsync(async (req, res) => {
+const getFollowersByUserId = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
   const { result, meta } = await userService.getFollowersByUserId(
     id,
@@ -195,7 +196,7 @@ const getFollowersByUserId = catchAsync(async (req, res) => {
 });
 
 // get following by user id
-const getFollowingByUserId = catchAsync(async (req, res) => {
+const getFollowingByUserId = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
   const { result, meta } = await userService.getFollowingByUserId(
     id,

@@ -1,0 +1,5 @@
+allowBuilds:
+  bcrypt: true
+  esbuild: true
+minimumReleaseAgeExclude:
+  - nodemailer@10.2.0

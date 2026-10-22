@@ -1,6 +1,7 @@
 import httpStatus from "http-status";
 import { catchAsync, sendResponse } from "../../utils";
 import { postService } from "./post.service";
+import type { TRouteParams } from "../../interface/params";
 
 const create = catchAsync(async (req, res) => {
   const result = await postService.create(req.user, req.body);
@@ -57,7 +58,7 @@ const getLoggedInUserPosts = catchAsync(async (req, res) => {
 });
 
 // get access free blog post if premium then pass to next controller / middleware
-const getFreeSinglePost = catchAsync(async (req, res, next) => {
+const getFreeSinglePost = catchAsync<TRouteParams>(async (req, res, next) => {
   const { slug } = req.params;
   const post = await postService.getPostByProperty("slug", slug);
 
@@ -73,7 +74,7 @@ const getFreeSinglePost = catchAsync(async (req, res, next) => {
   next();
 });
 
-const getPremiumSinglePost = catchAsync(async (req, res) => {
+const getPremiumSinglePost = catchAsync<TRouteParams>(async (req, res) => {
   const { slug } = req.params;
   const result = await postService.getPremiumSinglePost(req.user, slug);
 
@@ -86,7 +87,7 @@ const getPremiumSinglePost = catchAsync(async (req, res) => {
 });
 
 // vote
-const voteOnPost = catchAsync(async (req, res) => {
+const voteOnPost = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
   const { voteType } = req.query;
 
@@ -105,7 +106,7 @@ const voteOnPost = catchAsync(async (req, res) => {
 });
 
 // get vote status
-const getVoteStatus = catchAsync(async (req, res) => {
+const getVoteStatus = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
   const result = await postService.getVoteStatus(req.user, id);
 
@@ -118,7 +119,7 @@ const getVoteStatus = catchAsync(async (req, res) => {
 });
 
 // comment on post
-const commentOnPost = catchAsync(async (req, res) => {
+const commentOnPost = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
   const result = await postService.commentOnPost(req.user, id, req.body);
 
@@ -131,7 +132,7 @@ const commentOnPost = catchAsync(async (req, res) => {
 });
 
 // get all comments by post id
-const getAllCommentsByPostId = catchAsync(async (req, res) => {
+const getAllCommentsByPostId = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
   const { result, meta } = await postService.getAllCommentsByPostId(
     id,
@@ -148,7 +149,7 @@ const getAllCommentsByPostId = catchAsync(async (req, res) => {
 });
 
 // get all posts by user id
-const getAllPostsByUserId = catchAsync(async (req, res) => {
+const getAllPostsByUserId = catchAsync<TRouteParams>(async (req, res) => {
   const { userId } = req.params;
   const { result, meta } = await postService.getAllPostsByUserId(
     userId,
@@ -165,7 +166,7 @@ const getAllPostsByUserId = catchAsync(async (req, res) => {
 });
 
 // delete a post by admin using admin
-const deletePostByAdminUsingId = catchAsync(async (req, res) => {
+const deletePostByAdminUsingId = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
 
   const result = await postService.deletePostByAdminUsingId(id, req.body);
@@ -179,7 +180,7 @@ const deletePostByAdminUsingId = catchAsync(async (req, res) => {
 });
 
 // delete post by user using post id
-const deletePostByUserUsingId = catchAsync(async (req, res) => {
+const deletePostByUserUsingId = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
 
   const result = await postService.deletePostByUserUsingId(req.user, id);
@@ -193,7 +194,7 @@ const deletePostByUserUsingId = catchAsync(async (req, res) => {
 });
 
 // update post by user using post id
-const updatePostByUserUsingId = catchAsync(async (req, res) => {
+const updatePostByUserUsingId = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
 
   const result = await postService.updatePostByUserUsingId(
@@ -210,7 +211,7 @@ const updatePostByUserUsingId = catchAsync(async (req, res) => {
   });
 });
 
-const updatePostByAdmin = catchAsync(async (req, res) => {
+const updatePostByAdmin = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
 
   const result = await postService.updatePostByAdmin(id, req.body);

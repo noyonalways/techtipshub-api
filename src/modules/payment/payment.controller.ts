@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import config from "../../config";
 import { catchAsync, sendResponse } from "../../utils";
 import { paymentService } from "./payment.service";
+import type { TRouteParams } from "../../interface/params";
 
 const paymentConfirmation = catchAsync(async (req, res) => {
   const { transactionId } = req.query;
@@ -53,7 +54,7 @@ const paymentCancelled = catchAsync(async (req, res) => {
 });
 
 // get payment info by transaction id
-const getPaymentInfo = catchAsync(async (req, res) => {
+const getPaymentInfo = catchAsync<TRouteParams>(async (req, res) => {
   const { transactionId } = req.params;
   const result = await paymentService.getPaymentInfo(transactionId);
 

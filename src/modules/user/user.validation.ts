@@ -4,53 +4,23 @@ import { SocialPlatform, UserGender } from "./user.constant";
 const updateProfile = z.object({
   body: z
     .object({
-      fullName: z
-        .string({
-          invalid_type_error: "Full Name must be a string",
-          required_error: "Full Name is required",
-        })
-        .optional(),
-      bio: z
-        .string({
-          invalid_type_error: "Bio must be a string",
-          required_error: "Bio is required",
-        })
-        .optional(),
+      fullName: z.string({ error: "Full Name must be a string" }).optional(),
+      bio: z.string({ error: "Bio must be a string" }).optional(),
       designation: z
-        .string({
-          invalid_type_error: "Designation must be a string",
-          required_error: "Designation is required",
-        })
+        .string({ error: "Designation must be a string" })
         .optional(),
-      phone: z
-        .string({
-          invalid_type_error: "Phone must be a string",
-          required_error: "Phone is required",
-        })
-        .optional(),
-      location: z
-        .string({
-          invalid_type_error: "Location must be a string",
-          required_error: "Location is required",
-        })
-        .optional(),
+      phone: z.string({ error: "Phone must be a string" }).optional(),
+      location: z.string({ error: "Location must be a string" }).optional(),
       dateOfBirth: z
-        .string({
-          invalid_type_error: "Date of birth must be a string",
-          required_error: "Date of birth is required",
-        })
+        .string({ error: "Date of birth must be a string" })
         .optional(),
       gender: z
         .enum([...UserGender] as [string, ...string[]], {
-          required_error: "Gender is required",
-          invalid_type_error: "Gender must be string",
+          error: "Gender must be string",
         })
         .optional(),
       profilePicture: z
-        .string({
-          invalid_type_error: "Profile picture must be a string",
-          required_error: "Profile picture is required",
-        })
+        .string({ error: "Profile picture must be a string" })
         .optional(),
     })
     .strict(),
@@ -59,8 +29,7 @@ const updateProfile = z.object({
 const socialLinkSchema = z
   .object({
     platform: z.enum([...SocialPlatform] as [string, ...string[]], {
-      required_error: "Social Platform is required",
-      invalid_type_error: "Social Platform must be string",
+      error: "Social Platform must be string",
     }),
     url: z.string().url("Invalid URL"),
   })
