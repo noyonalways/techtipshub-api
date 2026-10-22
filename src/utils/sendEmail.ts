@@ -23,6 +23,12 @@ type TSendEmail = {
   subject: string;
   text: string;
   html: string;
+  /**
+   * When true, a failed send rejects instead of being logged and swallowed.
+   * Legacy flows (password reset, payments) rely on the old best-effort
+   * behaviour, so this defaults to false.
+   */
+  throwOnError?: boolean;
 };
 
 const sendEmail = async ({
@@ -30,6 +36,7 @@ const sendEmail = async ({
   subject,
   text,
   html,
+  throwOnError = false,
 }: TSendEmail) => {
   try {
     // send mail with defined transport object
@@ -49,6 +56,9 @@ const sendEmail = async ({
   } catch (error) {
     // eslint-disable-next-line no-console
     console.log(error);
+    // Re-throw so callers that must not claim a delivery (e.g. the contact
+    // form) can report the failure instead of silently succeeding.
+    if (throwOnError) throw error;
   }
 };
 

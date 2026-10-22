@@ -2,6 +2,7 @@ import { Router } from "express";
 import authRoutes from "../modules/auth/auth.routes";
 import categoryRoutes from "../modules/category/category.routes";
 import commentRoutes from "../modules/comment/comment.routes";
+import contactRoutes from "../modules/contact/contact.routes";
 import metricsRoutes from "../modules/metrics/metrics.routes";
 import paymentsRoutes from "../modules/payment/payment.routes";
 import postRoutes from "../modules/post/post.routes";
@@ -42,6 +43,10 @@ const moduleRoutes = [
   {
     path: "/metrics",
     routes: metricsRoutes,
+  },
+  {
+    path: "/contact",
+    routes: contactRoutes,
   },
 ];
 
