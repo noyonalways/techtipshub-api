@@ -11,14 +11,14 @@
     <img src="https://i.ibb.co.com/8dwgWQk/tech-tips-hub-logo.png" alt="Logo" width="80" height="80" />
     <h3 align="center">
         <a href="https://techtipshub-api.noyonrahman.xyz" target="_blank" >
-            Tech Tips Hub API
+            TechTipsHub API
         </a>
     </h3>
 </p>
 
 ## Description:
 
-**Tech Tips Hub** is an advanced blogging platform tailored for tech enthusiasts to read and write blogs. Users can access both free and premium blogs, with a monthly subscription offering exclusive content. The platform supports features like user registration, email verification, JWT-based authentication, upvoting/downvoting blogs, commenting with replies, and following/unfollowing users. It tracks important user interactions such as views, followers, and following, enhancing the social experience.
+**TechTipsHub** is an advanced blogging platform tailored for tech enthusiasts to read and write blogs. Users can access both free and premium blogs, with a monthly subscription offering exclusive content. The platform supports features like user registration, email verification, JWT-based authentication, upvoting/downvoting blogs, commenting with replies, and following/unfollowing users. It tracks important user interactions such as views, followers, and following, enhancing the social experience.
 
 ---
 
@@ -56,12 +56,12 @@
 
 ### User Routes:
 
-- `/api/v1/users` - **GET** - Get all users (admin only)
+- `/api/v1/users` - (moved to `/api/v1/admin/users`)
 - `/api/v1/users/:username` - **GET** - Get a single user by username
 - `/api/v1/users/update-profile` - **PATCH** - Update logged-in user profile
 - `/api/v1/users/profile/update-social-links` - **PUT** - Update user profile social links
-- `/api/v1/users/:id/block` - **PATCH** - Block a user (admin only)
-- `/api/v1/users/:id/unblock` - **PATCH** - Unblock a user (admin only)
+- `/api/v1/users/:id/block` - (moved to `PATCH /api/v1/admin/users/:id/block`)
+- `/api/v1/users/:id/unblock` - (moved to `PATCH /api/v1/admin/users/:id/unblock`)
 - `/api/v1/users/:id/follow` - **PUT** - Follow a user (Requires Auth)
 - `/api/v1/users/:id/unfollow` - **DELETE** - Unfollow a user (Requires Auth)
 - `/api/v1/users/my-followers` - **GET** - Get current logged-in user's followers
@@ -72,22 +72,29 @@
 ### Category Routes:
 
 - `/api/v1/categories` - **GET** - Get all categories
-- `/api/v1/categories` - **POST** - Create a new category (admin only)
+- `/api/v1/categories` - **POST** - (moved to `POST /api/v1/admin/categories`)
 - `/api/v1/categories/:id` - **GET** - Get a single category by ID
-- `/api/v1/categories/:id` - **DELETE** - Delete a single category by ID (admin only)
+- `/api/v1/categories/:id` - **DELETE** - (moved to `DELETE /api/v1/admin/categories/:id`)
+- `/api/v1/categories/:id` - **PATCH** - (moved to `PATCH /api/v1/admin/categories/:id`)
 
-## Post Routes
+## Blog Routes
 
-- `/api/v1/posts` - **POST** - Create a new post (requires user authentication)
-- `/api/v1/posts` - **GET** - Get all posts (public access)
-- `/api/v1/posts/my-posts` - **GET** - Get all posts by the current logged-in user (requires user authentication)
-- `/api/v1/posts/:slug` - **GET** - Get a single post by slug (access depends on the post type)
-- `/api/v1/posts/:id/vote` - **PUT** - Vote on a post (requires user authentication)
-- `/api/v1/posts/:id/comments` - **POST** - Comment on a post (requires user authentication)
-- `/api/v1/posts/:id/comments` - **GET** - Get all comments by post ID (requires user authentication)
-- `/api/v1/posts/users/:userId` - **GET** - Get all posts by user ID (public access)
+- `/api/v1/blogs` - **POST** - Create a new blog (requires user authentication)
+- `/api/v1/blogs` - **GET** - Get all blogs (public access)
+- `/api/v1/blogs/my-blogs` - **GET** - Get all blogs by the current logged-in user (requires user authentication)
+- `/api/v1/blogs/:slug` - **GET** - Get a single blog by slug (access depends on the blog type)
+- `/api/v1/blogs/:id/vote` - **PUT** - Vote on a blog (requires user authentication)
+- `/api/v1/blogs/:id/comments` - **POST** - Comment on a blog (requires user authentication)
+- `/api/v1/blogs/:id/comments` - **GET** - Get all comments by blog ID (requires user authentication)
+- `/api/v1/blogs/users/:userId` - **GET** - Get all blogs by user ID (public access)
+
+### Admin Routes:
+
+Every admin endpoint lives under `/api/v1/admin` and requires the Admin role. See the
+header of `src/modules/admin/admin.routes.ts` for the full list.
 
 ### Subscriptions Routes:
+
 
 - `/api/v1/subscriptions/subscribe` - **POST** - Subscribe to a premium plan (requires user authentication)
 
@@ -199,7 +206,7 @@ yarn dev
 
 ## Contact
 
-- Email: [noyonrahman2003@gmail.com](mailto:noyonrahman2003@gmail.com)
+- Email: [contact.techtipshub@noyonrahman.com](mailto:contact.techtipshub@noyonrahman.com)
 - LinkedIn: [Noyon Rahman](https://linkedin.com/in/noyonalways)
 
 <!-- MARKDOWN LINKS & IMAGES -->

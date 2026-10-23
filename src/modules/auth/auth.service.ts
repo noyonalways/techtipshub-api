@@ -5,6 +5,7 @@ import { AppError } from "../../errors";
 import {
   generateResetPasswordEmail,
   generateVerifyEmail,
+  isEmailConfigured,
   sendEmail,
 } from "../../utils";
 import { IUser } from "../user/user.interface";
@@ -112,7 +113,6 @@ const login = async (payload: IUser) => {
     name: user.fullName,
     email: user.email,
     role: user.role,
-    isPremiumUser: user.isPremiumUser,
   };
 
   const accessToken = User.createToken(
@@ -145,7 +145,6 @@ const socialLogin = async (payload: IUser) => {
     name: user.fullName,
     email: user.email,
     role: user.role,
-    isPremiumUser: user.isPremiumUser,
   };
 
   const accessToken = User.createToken(
@@ -240,6 +239,15 @@ const forgetPassword = async (email: string) => {
     throw new AppError(httpStatus.FORBIDDEN, "User is blocked");
   }
 
+  // Refuse up front rather than report a link "sent" that never leaves the
+  // server. The UI shows a clear message when mail is not configured.
+  if (!isEmailConfigured()) {
+    throw new AppError(
+      httpStatus.SERVICE_UNAVAILABLE,
+      "Email delivery is not configured on this server yet, so a reset link cannot be sent.",
+    );
+  }
+
   // generate jwt token
   const jwtPayload = {
     email: user.email,
@@ -252,8 +260,12 @@ const forgetPassword = async (email: string) => {
     config.jwt_reset_password_expires_in as string,
   );
 
-  // generate reset link
-  const resetUILink = `${config.reset_password_ui_url}?email=${user?.email}&token=${resetToken}`;
+  // generate reset link. The UI lives in this same application, so the link
+  // points at its /reset-password route; the token travels in the fragment so
+  // it is never sent to a server in a Referer header or access log.
+  const resetUILink = `${config.reset_password_ui_url}?email=${encodeURIComponent(
+    user.email,
+  )}#token=${resetToken}`;
 
   // send reset link to user email
   await sendEmail({
@@ -267,19 +279,41 @@ const forgetPassword = async (email: string) => {
       resetPasswordLink: resetUILink,
       fullName: user.fullName,
     }),
+    // A reset mail that fails to send must not be reported as sent.
+    throwOnError: true,
   });
 
   // eslint-disable-next-line no-console
   console.log(`Password reset link sent to ${user.email}`);
+
+  // Enough for the UI to confirm where the mail went, and nothing more.
+  return { email: user.email };
 };
 
 // reset password
 const resetPassword = async (
-  payload: { email: string; newPassword: string },
+  payload: { newPassword: string },
   token: string,
 ) => {
+  // Verify the link's token first so an expired or tampered link reports that
+  // clearly. The account comes from the token itself — never from a field the
+  // caller can edit — so a valid link can only ever reset its own account.
+  let decoded: JwtPayload;
+  try {
+    decoded = User.verifyToken(
+      token,
+      config.jwt_reset_password_secret as string,
+    ) as JwtPayload;
+  } catch (error: any) {
+    const message =
+      error?.name === "TokenExpiredError"
+        ? "This reset link has expired. Request a new one."
+        : "This reset link is not valid. Request a new one.";
+    throw new AppError(httpStatus.FORBIDDEN, message);
+  }
+
   // check the use is exist or not
-  const user = await User.findOne({ email: payload.email });
+  const user = await User.findOne({ email: decoded.email });
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "User not found");
   }
@@ -292,15 +326,6 @@ const resetPassword = async (
   // check the is user status
   if (user.status === "Blocked") {
     throw new AppError(httpStatus.FORBIDDEN, "User is blocked");
-  }
-
-  const decoded = User.verifyToken(
-    token,
-    config.jwt_reset_password_secret as string,
-  );
-
-  if (payload.email !== decoded.email) {
-    throw new AppError(httpStatus.FORBIDDEN, "Access forbidden");
   }
 
   // generate new password
@@ -364,7 +389,6 @@ const generateNewAccessToken = async (refreshToken: string) => {
     name: user.fullName,
     email: user.email,
     role: user.role,
-    isPremiumUser: user.isPremiumUser,
   };
 
   const accessToken = User.createToken(

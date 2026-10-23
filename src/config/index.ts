@@ -24,6 +24,10 @@ export default {
   smtp_auth_user: process.env.SMTP_AUTH_USER,
   smtp_auth_password: process.env.SMTP_AUTH_PASSWORD,
   nodemailer_email_from: process.env.NODEMAILER_EMAIL_FROM,
+  // Inbox that contact-form submissions are delivered to. Falls back to the
+  // sending address so the form always has a real destination.
+  contact_inbox:
+    process.env.CONTACT_INBOX || process.env.NODEMAILER_EMAIL_FROM,
 
   // hash password
   bcrypt_salt_round: process.env.BCRYPT_SALT_ROUND,
@@ -32,9 +36,4 @@ export default {
   cloud_name: process.env.CLOUD_NAME,
   cloudinary_api_key: process.env.CLOUDINARY_API_KEY,
   cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET,
-
-  // aamarpay payment gateway
-  aamarpay_gateway_base_url: process.env.AAMARPAY_GATEWAY_BASE_URL,
-  aamarpay_store_id: process.env.AAMARPAY_STORE_ID,
-  aamarpay_signature_key: process.env.AAMARPAY_SIGNATURE_KEY,
 };

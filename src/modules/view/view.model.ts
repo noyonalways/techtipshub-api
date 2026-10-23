@@ -6,12 +6,17 @@ const viewSchema = new Schema<IView>(
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "User Id is required"],
     },
+    // Stored as `post` for database compatibility; it references a blog.
     post: {
       type: Schema.Types.ObjectId,
       ref: "Post",
-      required: [true, "Post Id is required"],
+      required: [true, "Blog Id is required"],
+    },
+    visitorKey: {
+      type: String,
+      required: [true, "visitorKey is required"],
+      trim: true,
     },
     viewedAt: {
       type: Date,
@@ -23,7 +28,15 @@ const viewSchema = new Schema<IView>(
   },
 );
 
-viewSchema.index({ post: 1, user: 1 }, { unique: true });
+// One view per reader per blog.
+//
+// Every record carries a `visitorKey`: the account id for signed-in readers and
+// the pseudonymous guest hash otherwise. That single field is what the unique
+// index enforces. (`user` is kept only to browse views by account; it is
+// deliberately not uniquely indexed, because the pre-existing index of that
+// name on `{post, user}` has to stay compatible for guest rows that have no
+// user.)
+viewSchema.index({ post: 1, visitorKey: 1 }, { unique: true });
 
 const View = model<IView>("View", viewSchema);
 

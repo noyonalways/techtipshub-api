@@ -1,9 +1,10 @@
 import httpStatus from "http-status";
 import { catchAsync, sendResponse } from "../../utils";
 import { categoryService } from "./category.service";
+import type { TRouteParams } from "../../interface/params";
 
 const create = catchAsync(async (req, res) => {
-  const result = await categoryService.create(req.body);
+  const result = await categoryService.create(req.body, req.user?.email);
 
   sendResponse(res, {
     success: true,
@@ -25,7 +26,7 @@ const getAll = catchAsync(async (req, res) => {
   });
 });
 
-const getSingleCategory = catchAsync(async (req, res) => {
+const getSingleCategory = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
   const result = await categoryService.getSingleCategory(id);
 
@@ -37,9 +38,12 @@ const getSingleCategory = catchAsync(async (req, res) => {
   });
 });
 
-const deleteSingleCategory = catchAsync(async (req, res) => {
+const deleteSingleCategory = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
-  const result = await categoryService.deleteSingleCategory(id);
+  const result = await categoryService.deleteSingleCategory(
+    id,
+    req.user?.email,
+  );
 
   sendResponse(res, {
     success: true,
@@ -49,9 +53,35 @@ const deleteSingleCategory = catchAsync(async (req, res) => {
   });
 });
 
+const update = catchAsync<TRouteParams>(async (req, res) => {
+  const { id } = req.params;
+  const result = await categoryService.update(id, req.body, req.user?.email);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Category updated successfully",
+    data: result,
+  });
+});
+
+const getAdminList = catchAsync(async (req, res) => {
+  const { result, total, meta } = await categoryService.getAdminList(req.query);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Categories retrieved successfully",
+    data: { result, total },
+    meta,
+  });
+});
+
 export const categoryController = {
   create,
   getAll,
   getSingleCategory,
   deleteSingleCategory,
+  update,
+  getAdminList,
 };

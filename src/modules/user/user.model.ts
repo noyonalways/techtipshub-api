@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import type { SignOptions } from "jsonwebtoken";
 import { model, Schema } from "mongoose";
 import config from "../../config";
 import {
@@ -107,6 +108,7 @@ const userSchema = new Schema<IUser, IUserModel>(
       type: Number,
       default: 0,
     },
+    // Stored as `totalPosts` for database compatibility; exposed as `totalBlogs`.
     totalPosts: {
       type: Number,
       default: 0,
@@ -123,10 +125,6 @@ const userSchema = new Schema<IUser, IUserModel>(
       type: Boolean,
       default: false,
     },
-    isPremiumUser: {
-      type: Boolean,
-      default: false,
-    },
     isDeleted: {
       type: Boolean,
       default: false,
@@ -134,6 +132,12 @@ const userSchema = new Schema<IUser, IUserModel>(
   },
   { timestamps: true },
 );
+
+// The field is stored as `totalPosts` so existing documents keep working, but
+// the API speaks `totalBlogs` and the client reads that name.
+userSchema.virtual("totalBlogs").get(function () {
+  return this.totalPosts;
+});
 
 userSchema.pre("find", function (next) {
   if (!this.getOptions()?.bypassMiddleware) {
@@ -186,7 +190,9 @@ userSchema.statics.createToken = function (
   expiresIn: string,
 ) {
   return jwt.sign(jwtPayload, secret, {
-    expiresIn,
+    // expiresIn comes from env vars, which are typed as plain `string`;
+    // jsonwebtoken's SignOptions wants the `ms` StringValue union ("15m", "7d").
+    expiresIn: expiresIn as SignOptions["expiresIn"],
   });
 };
 

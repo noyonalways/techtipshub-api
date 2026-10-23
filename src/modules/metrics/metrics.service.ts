@@ -1,7 +1,6 @@
 import { format, startOfMonth, subMonths } from "date-fns";
 import Comment from "../comment/comment.model";
-import Payment from "../payment/payment.model";
-import Post from "../post/post.model";
+import Blog from "../blog/blog.model";
 import User from "../user/user.model";
 import View from "../view/view.model";
 import Vote from "../vote/vote.model";
@@ -117,51 +116,6 @@ const dashboard = async () => {
     type: determineType(currentMonthViews, lastMonthViews),
   };
 
-  // Fetch total revenue where status is 'Paid'
-  const totalRevenue = await Payment.aggregate([
-    { $match: { status: "Paid" } }, // Filter for 'Paid' status
-    { $group: { _id: null, total: { $sum: "$amount" } } }, // Sum the amount field
-  ]);
-
-  const totalRevenueAmount =
-    totalRevenue.length > 0 ? totalRevenue[0].total : 0;
-
-  // Current Month Revenue where status is 'Paid'
-  const currentMonthRevenue = await Payment.aggregate([
-    { $match: { status: "Paid", createdAt: { $gte: currentMonthStart } } }, // Filter for 'Paid' status
-    { $group: { _id: null, total: { $sum: "$amount" } } }, // Sum the amount field
-  ]);
-
-  const currentMonthRevenueAmount =
-    currentMonthRevenue.length > 0 ? currentMonthRevenue[0].total : 0;
-
-  // Last Month Revenue where status is 'Paid'
-  const lastMonthRevenue = await Payment.aggregate([
-    {
-      $match: {
-        status: "Paid",
-        createdAt: {
-          $gte: subMonths(currentMonthStart, 1),
-          $lt: currentMonthStart,
-        },
-      },
-    }, // Filter for 'Paid' status
-    { $group: { _id: null, total: { $sum: "$amount" } } }, // Sum the amount field
-  ]);
-
-  const lastMonthRevenueAmount =
-    lastMonthRevenue.length > 0 ? lastMonthRevenue[0].total : 0;
-
-  const revenueData = {
-    total: totalRevenueAmount,
-    currentMonth: currentMonthRevenueAmount,
-    lastMonthDiff: calculatePercentageDiff(
-      currentMonthRevenueAmount,
-      lastMonthRevenueAmount,
-    ),
-    type: determineType(currentMonthRevenueAmount, lastMonthRevenueAmount),
-  };
-
   const totalUsers = await User.countDocuments();
   const currentMonthUsers = await User.countDocuments({
     createdAt: { $gte: currentMonthStart },
@@ -179,22 +133,22 @@ const dashboard = async () => {
     type: determineType(currentMonthUsers, lastMonthUsers),
   };
 
-  const totalPosts = await Post.countDocuments({ isDeleted: false });
-  const currentMonthPosts = await Post.countDocuments({
+  const totalBlogs = await Blog.countDocuments({ isDeleted: false });
+  const currentMonthBlogs = await Blog.countDocuments({
     createdAt: { $gte: currentMonthStart },
     isDeleted: false,
   });
-  const lastMonthPosts = await Post.countDocuments({
+  const lastMonthBlogs = await Blog.countDocuments({
     createdAt: {
       $gte: subMonths(currentMonthStart, 1),
       $lt: currentMonthStart,
     },
   });
-  const postsData = {
-    total: totalPosts,
-    currentMonth: currentMonthPosts,
-    lastMonthDiff: calculatePercentageDiff(currentMonthPosts, lastMonthPosts),
-    type: determineType(currentMonthPosts, lastMonthPosts),
+  const blogsData = {
+    total: totalBlogs,
+    currentMonth: currentMonthBlogs,
+    lastMonthDiff: calculatePercentageDiff(currentMonthBlogs, lastMonthBlogs),
+    type: determineType(currentMonthBlogs, lastMonthBlogs),
   };
 
   // Generate chart data for each month of the current year
@@ -203,10 +157,9 @@ const dashboard = async () => {
     return {
       name: format(monthStart, "MMM"), // Format month as Jan, Feb, etc.
       views: 0,
-      posts: 0,
+      blogs: 0,
       comments: 0,
       users: 0,
-      revenue: 0,
       upvotes: 0,
       downvotes: 0,
     };
@@ -219,42 +172,26 @@ const dashboard = async () => {
 
     const [
       monthlyViews,
-      monthlyPosts,
+      monthlyBlogs,
       monthlyComments,
       monthlyUsers,
-      monthlyRevenue,
       monthlyUpvotes,
       monthlyDownvotes,
     ] = await Promise.all([
       getMonthlyCount(View, null, monthStart, monthEnd),
-      getMonthlyCount(Post, null, monthStart, monthEnd),
+      getMonthlyCount(Blog, null, monthStart, monthEnd),
       getMonthlyCount(Comment, null, monthStart, monthEnd),
       getMonthlyCount(User, null, monthStart, monthEnd),
-      // Fetch the total revenue for the month
-      Payment.aggregate([
-        {
-          $match: {
-            status: "Paid",
-            createdAt: { $gte: monthStart, $lt: monthEnd },
-          },
-        },
-        { $group: { _id: null, total: { $sum: "$amount" } } },
-      ]),
       getMonthlyCount(Vote, "upvote", monthStart, monthEnd),
       getMonthlyCount(Vote, "downvote", monthStart, monthEnd),
     ]);
 
-    // Extract revenue amount from the aggregation result
-    const revenueAmount =
-      monthlyRevenue.length > 0 ? monthlyRevenue[0].total : 0;
-
     chartData[i] = {
       name: format(monthStart, "MMM"), // Month name
       views: monthlyViews,
-      posts: monthlyPosts,
+      blogs: monthlyBlogs,
       comments: monthlyComments,
       users: monthlyUsers,
-      revenue: revenueAmount,
       upvotes: monthlyUpvotes,
       downvotes: monthlyDownvotes,
     };
@@ -265,9 +202,8 @@ const dashboard = async () => {
     downvotes: downvotesData,
     comments: commentsData,
     views: viewsData,
-    revenue: revenueData,
     users: usersData,
-    posts: postsData,
+    blogs: blogsData,
     chartData: chartData,
   };
 

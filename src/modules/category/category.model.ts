@@ -14,6 +14,7 @@ const categorySchema = new Schema<ICategory>(
       trim: true,
       default: "",
     },
+    // Stored as `postCount` for database compatibility; exposed as `blogCount`.
     postCount: {
       type: Number,
       default: 0,
@@ -27,6 +28,12 @@ const categorySchema = new Schema<ICategory>(
     timestamps: true,
   },
 );
+
+// The field is stored as `postCount` so existing documents keep working, but
+// the API speaks `blogCount` and the client reads that name.
+categorySchema.virtual("blogCount").get(function () {
+  return this.postCount;
+});
 
 categorySchema.pre("find", function (next) {
   this.find({ isDeleted: { $ne: true } });
