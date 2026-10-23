@@ -1,1 +1,6 @@
-export { default as QueryBuilder } from "./QueryBuilder";
+export {
+  buildSearchFilter,
+  default as QueryBuilder,
+  escapeRegex,
+  parseSearchTerms,
+} from "./QueryBuilder";

@@ -53,7 +53,7 @@ const sendEmail = async ({
     // send mail with defined transport object
     await transporter.sendMail({
       from: {
-        name: "Tech Tips Hub",
+        name: "TechTipsHub",
         address: config.nodemailer_email_from as string,
       },
       to: {

@@ -1,15 +1,15 @@
 /**
  * One-off backfill for view/comment counters. Safe to re-run:
  *  - gives legacy view records the new `visitorKey` format,
- *  - rebuilds every post's `totalViews` and `totalComments` from real records,
- *  - refreshes each user's `totalPosts` from their non-deleted posts.
+ *  - rebuilds every blog's `totalViews` and `totalComments` from real records,
+ *  - refreshes each user's `totalPosts` from their non-deleted blogs.
  *
  * Run with: npx tsx scripts/backfill-counters.ts
  */
 import mongoose from "mongoose";
 import connectToDatabase from "../src/db";
 import Comment from "../src/modules/comment/comment.model";
-import Post from "../src/modules/post/post.model";
+import Blog from "../src/modules/blog/blog.model";
 import User from "../src/modules/user/user.model";
 import View from "../src/modules/view/view.model";
 
@@ -58,14 +58,14 @@ const run = async () => {
     await View.collection.createIndex({ post: 1, user: 1 }, { name: "post_1_user_1" });
   }
 
-  // 3. Rebuild post counters.
-  const [viewTotals, commentTotals, postCounts] = await Promise.all([
+  // 3. Rebuild blog counters.
+  const [viewTotals, commentTotals, blogCounts] = await Promise.all([
     View.collection.aggregate([{ $group: { _id: "$post", n: { $sum: 1 } } }]).toArray(),
     Comment.aggregate([
       { $match: { isDeleted: { $ne: true } } },
       { $group: { _id: "$post", n: { $sum: 1 } } },
     ]),
-    Post.aggregate([
+    Blog.aggregate([
       { $match: { isDeleted: { $ne: true } } },
       { $group: { _id: "$author", n: { $sum: 1 } } },
     ]),
@@ -73,24 +73,24 @@ const run = async () => {
 
   const views = new Map(viewTotals.map((row) => [String(row._id), row.n]));
   const comments = new Map(commentTotals.map((row) => [String(row._id), row.n]));
-  const posts = new Map(postCounts.map((row) => [String(row._id), row.n]));
+  const blogs = new Map(blogCounts.map((row) => [String(row._id), row.n]));
 
-  const allPosts = await Post.find({}).select("_id totalViews totalComments");
-  let updatedPosts = 0;
-  for (const post of allPosts) {
-    const key = String(post._id);
+  const allBlogs = await Blog.find({}).select("_id totalViews totalComments");
+  let updatedBlogs = 0;
+  for (const blog of allBlogs) {
+    const key = String(blog._id);
     const totalViews = views.get(key) ?? 0;
     const totalComments = comments.get(key) ?? 0;
-    if (post.totalViews !== totalViews || post.totalComments !== totalComments) {
-      await Post.updateOne({ _id: post._id }, { $set: { totalViews, totalComments } });
-      updatedPosts += 1;
+    if (blog.totalViews !== totalViews || blog.totalComments !== totalComments) {
+      await Blog.updateOne({ _id: blog._id }, { $set: { totalViews, totalComments } });
+      updatedBlogs += 1;
     }
   }
 
   const allUsers = await User.find({}).select("_id totalPosts").setOptions({ bypassMiddleware: true });
   let updatedUsers = 0;
   for (const user of allUsers) {
-    const totalPosts = posts.get(String(user._id)) ?? 0;
+    const totalPosts = blogs.get(String(user._id)) ?? 0;
     if (user.totalPosts !== totalPosts) {
       await User.collection.updateOne({ _id: user._id }, { $set: { totalPosts } });
       updatedUsers += 1;
@@ -98,7 +98,7 @@ const run = async () => {
   }
 
   console.log(
-    `legacy views keyed: ${legacy.length}, posts updated: ${updatedPosts}/${allPosts.length}, users updated: ${updatedUsers}/${allUsers.length}`,
+    `legacy views keyed: ${legacy.length}, blogs updated: ${updatedBlogs}/${allBlogs.length}, users updated: ${updatedUsers}/${allUsers.length}`,
   );
 
   await mongoose.disconnect();

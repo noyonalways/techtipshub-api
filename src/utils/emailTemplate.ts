@@ -70,10 +70,10 @@ export const generateResetPasswordEmail = ({
         <table border="0" cellpadding="0" cellspacing="0" width="100%">
           <tr>
             <td style="text-align: center;">
-              <a href="mailto:noyonrahman2003@gmail.com" style="color: #3498db; text-decoration: none;">
+              <a href="mailto:contact.techtipshub@noyonrahman.com" style="color: #3498db; text-decoration: none;">
                 <img src="https://cdn-icons-png.flaticon.com/128/561/561127.png" alt="Email"
                   style="vertical-align: middle; margin-right: 10px; width: 16px; height: 16px;">
-                support@tech-tips-hub.com
+                contact.techtipshub@noyonrahman.com
               </a>
             </td>
           </tr>
@@ -82,7 +82,7 @@ export const generateResetPasswordEmail = ({
     </tr>
     <tr>
       <td style="padding: 20px 30px; text-align: center; font-size: 14px; color: #666666; background-color: #f0f0f0;">
-        <p>&copy; 2024 Tech Tips Hub. All rights reserved.</p>
+        <p>&copy; 2024 TechTipsHub. All rights reserved.</p>
         <p>
           <a target="_blank" href="https://facebook.com/noyonalways"
             style="color: #3498db; text-decoration: none; margin: 0 10px;">
@@ -151,7 +151,7 @@ export const generateVerifyEmail = ({
                   <td
                     style="padding: 20px 0 30px 0; color: #153643; font-family: Arial, sans-serif; font-size: 16px; line-height: 20px;">
                     Dear ${fullName},<br><br>
-                    Thank you for creating an account with Tech Tips Hub. To ensure the security of your
+                    Thank you for creating an account with TechTipsHub. To ensure the security of your
                     account and activate all features, please verify your email address by clicking the button below:
                   </td>
                 </tr>
@@ -185,10 +185,10 @@ export const generateVerifyEmail = ({
                     style="padding: 30px 0 0 0; color: #153643; font-family: Arial, sans-serif; font-size: 16px; line-height: 20px;">
                     This link will expire in 24 hours for security reasons. If you did not create an account with us,
                     please disregard this email.<br><br>
-                    If you have any questions or need assistance, please don't hesitate to contact our support team at
-                    support@tech-tips-hub.com.<br><br>
+                    If you have any questions or need assistance, please don't hesitate to contact us at
+                    contact.techtipshub@noyonrahman.com.<br><br>
                     Best regards,<br>
-                    Tech Tips Hub Team
+                    TechTipsHub Team
                   </td>
                 </tr>
               </table>
@@ -199,7 +199,7 @@ export const generateVerifyEmail = ({
               <table border="0" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td style="color: #ffffff; font-family: Arial, sans-serif; font-size: 14px;" width="75%">
-                    &copy; Tech Tips Hub 2023<br />
+                    &copy; TechTipsHub 2023<br />
 
                   </td>
                   <td align="right" width="25%">

@@ -1,5 +1,5 @@
 import slugify from "slugify";
-import Post from "./post.model";
+import Blog from "./blog.model";
 
 // Function to generate slug with potential suffix
 export const generateUniqueSlug = async (title: string) => {
@@ -14,7 +14,7 @@ export const generateUniqueSlug = async (title: string) => {
   let suffix = 1;
 
   // Check for slug existence and generate a unique one
-  while (await Post.findOne({ slug })) {
+  while (await Blog.findOne({ slug })) {
     slug = `${baseSlug}-${suffix}`;
     suffix += 1;
   }

@@ -1,6 +1,6 @@
 import { format, startOfMonth, subMonths } from "date-fns";
 import Comment from "../comment/comment.model";
-import Post from "../post/post.model";
+import Blog from "../blog/blog.model";
 import User from "../user/user.model";
 import View from "../view/view.model";
 import Vote from "../vote/vote.model";
@@ -133,22 +133,22 @@ const dashboard = async () => {
     type: determineType(currentMonthUsers, lastMonthUsers),
   };
 
-  const totalPosts = await Post.countDocuments({ isDeleted: false });
-  const currentMonthPosts = await Post.countDocuments({
+  const totalBlogs = await Blog.countDocuments({ isDeleted: false });
+  const currentMonthBlogs = await Blog.countDocuments({
     createdAt: { $gte: currentMonthStart },
     isDeleted: false,
   });
-  const lastMonthPosts = await Post.countDocuments({
+  const lastMonthBlogs = await Blog.countDocuments({
     createdAt: {
       $gte: subMonths(currentMonthStart, 1),
       $lt: currentMonthStart,
     },
   });
-  const postsData = {
-    total: totalPosts,
-    currentMonth: currentMonthPosts,
-    lastMonthDiff: calculatePercentageDiff(currentMonthPosts, lastMonthPosts),
-    type: determineType(currentMonthPosts, lastMonthPosts),
+  const blogsData = {
+    total: totalBlogs,
+    currentMonth: currentMonthBlogs,
+    lastMonthDiff: calculatePercentageDiff(currentMonthBlogs, lastMonthBlogs),
+    type: determineType(currentMonthBlogs, lastMonthBlogs),
   };
 
   // Generate chart data for each month of the current year
@@ -157,7 +157,7 @@ const dashboard = async () => {
     return {
       name: format(monthStart, "MMM"), // Format month as Jan, Feb, etc.
       views: 0,
-      posts: 0,
+      blogs: 0,
       comments: 0,
       users: 0,
       upvotes: 0,
@@ -172,14 +172,14 @@ const dashboard = async () => {
 
     const [
       monthlyViews,
-      monthlyPosts,
+      monthlyBlogs,
       monthlyComments,
       monthlyUsers,
       monthlyUpvotes,
       monthlyDownvotes,
     ] = await Promise.all([
       getMonthlyCount(View, null, monthStart, monthEnd),
-      getMonthlyCount(Post, null, monthStart, monthEnd),
+      getMonthlyCount(Blog, null, monthStart, monthEnd),
       getMonthlyCount(Comment, null, monthStart, monthEnd),
       getMonthlyCount(User, null, monthStart, monthEnd),
       getMonthlyCount(Vote, "upvote", monthStart, monthEnd),
@@ -189,7 +189,7 @@ const dashboard = async () => {
     chartData[i] = {
       name: format(monthStart, "MMM"), // Month name
       views: monthlyViews,
-      posts: monthlyPosts,
+      blogs: monthlyBlogs,
       comments: monthlyComments,
       users: monthlyUsers,
       upvotes: monthlyUpvotes,
@@ -203,7 +203,7 @@ const dashboard = async () => {
     comments: commentsData,
     views: viewsData,
     users: usersData,
-    posts: postsData,
+    blogs: blogsData,
     chartData: chartData,
   };
 

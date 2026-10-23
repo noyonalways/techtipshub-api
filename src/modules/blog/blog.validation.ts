@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
 import { z } from "zod";
-import { PostContentType } from "./post.constant";
+import { BlogContentType } from "./blog.constant";
 
 const create = z.object({
   body: z
     .object({
       title: z.string({ error: "Title must be a string" }),
-      contentType: z.enum([...PostContentType] as [string, ...string[]], {
+      contentType: z.enum([...BlogContentType] as [string, ...string[]], {
         error: "Content Type must be a string",
       }),
       content: z.string({ error: "Content must be a string" }),
@@ -34,7 +34,7 @@ const update = z.object({
     .object({
       title: z.string({ error: "Title must be a string" }).optional(),
       contentType: z
-        .enum([...PostContentType] as [string, ...string[]], {
+        .enum([...BlogContentType] as [string, ...string[]], {
           error: "Content Type must be a string",
         })
         .optional(),
@@ -67,7 +67,7 @@ const updateByAdmin = z.object({
         }),
       title: z.string({ error: "Title must be a string" }).optional(),
       contentType: z
-        .enum([...PostContentType] as [string, ...string[]], {
+        .enum([...BlogContentType] as [string, ...string[]], {
           error: "Content Type must be a string",
         })
         .optional(),
@@ -90,7 +90,7 @@ const updateByAdmin = z.object({
     .strict(),
 });
 
-export const postValidationSchema = {
+export const blogValidationSchema = {
   create,
   update,
   updateByAdmin,

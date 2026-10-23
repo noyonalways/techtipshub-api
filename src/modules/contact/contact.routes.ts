@@ -5,11 +5,11 @@ import { contactValidationSchema } from "./contact.validation";
 
 const contactRoutes: Router = Router();
 
-contactRoutes
-  .route("/")
-  .post(
-    validateRequest(contactValidationSchema.create),
-    contactController.create,
-  );
+// Public contact form. Inbox handling lives under "/admin/messages".
+contactRoutes.post(
+  "/",
+  validateRequest(contactValidationSchema.create),
+  contactController.create,
+);
 
 export default contactRoutes;

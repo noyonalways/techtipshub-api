@@ -1,10 +1,11 @@
 import { Router } from "express";
 import authRoutes from "../modules/auth/auth.routes";
+import adminRoutes from "../modules/admin/admin.routes";
 import categoryRoutes from "../modules/category/category.routes";
 import commentRoutes from "../modules/comment/comment.routes";
 import contactRoutes from "../modules/contact/contact.routes";
 import metricsRoutes from "../modules/metrics/metrics.routes";
-import postRoutes from "../modules/post/post.routes";
+import blogRoutes from "../modules/blog/blog.routes";
 import userRoutes from "../modules/user/user.routes";
 import viewRoutes from "../modules/view/view.routes";
 
@@ -20,12 +21,16 @@ const moduleRoutes = [
     routes: userRoutes,
   },
   {
+    path: "/admin",
+    routes: adminRoutes,
+  },
+  {
     path: "/categories",
     routes: categoryRoutes,
   },
   {
-    path: "/posts",
-    routes: postRoutes,
+    path: "/blogs",
+    routes: blogRoutes,
   },
   {
     path: "/comments",

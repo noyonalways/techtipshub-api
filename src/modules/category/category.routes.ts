@@ -1,23 +1,11 @@
 import { Router } from "express";
-import { USER_ROLE } from "../../constant";
-import { auth, validateRequest } from "../../middlewares";
 import { categoryController } from "./category.controller";
-import { categoryValidationSchema } from "./category.validation";
 
 const categoryRouter: Router = Router();
 
-categoryRouter
-  .route("/")
-  .get(categoryController.getAll)
-  .post(
-    auth(USER_ROLE.ADMIN),
-    validateRequest(categoryValidationSchema.create),
-    categoryController.create,
-  );
+// Public reads only. Writes live under "/admin/categories".
+categoryRouter.get("/", categoryController.getAll);
 
-categoryRouter
-  .route("/:id")
-  .get(categoryController.getSingleCategory)
-  .delete(categoryController.deleteSingleCategory);
+categoryRouter.get("/:id", categoryController.getSingleCategory);
 
 export default categoryRouter;

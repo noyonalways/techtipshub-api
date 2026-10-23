@@ -8,13 +8,7 @@ import { userValidationSchema } from "./user.validation";
 
 const userRouter: Router = Router();
 
-// get all users (admin only)
-userRouter.get("/", auth(USER_ROLE.ADMIN), userController.getAllUsers);
-
-// get user details by username
-userRouter.get("/:username", userController.getSingleUserByUsername);
-
-// update logged in user profile endpoints
+// Literal paths must stay above "/:username", or they are read as a username.
 userRouter.patch(
   "/update-profile",
   auth(USER_ROLE.USER, USER_ROLE.ADMIN),
@@ -45,30 +39,6 @@ userRouter.put(
   auth(USER_ROLE.USER, USER_ROLE.ADMIN),
   validateRequest(userValidationSchema.updateSocialLinks),
   userController.updateSocialLinks,
-);
-
-// block user (admin only)
-userRouter.patch("/:id/block", auth(USER_ROLE.ADMIN), userController.blockUser);
-
-// unblock user (admin only)
-userRouter.patch(
-  "/:id/unblock",
-  auth(USER_ROLE.ADMIN),
-  userController.unBlockUser,
-);
-
-// make a user to admin (admin only)
-userRouter.patch(
-  "/:id/make-admin",
-  auth(USER_ROLE.ADMIN),
-  userController.makeAdmin,
-);
-
-// delete user account (admin only)
-userRouter.delete(
-  "/:id",
-  auth(USER_ROLE.ADMIN),
-  userController.deleteUserAccount,
 );
 
 // follow a user (id: indicates that the user wanted to follow)
@@ -107,5 +77,8 @@ userRouter.get("/:id/followers", userController.getFollowersByUserId);
 
 // get all following by user id
 userRouter.get("/:id/following", userController.getFollowingByUserId);
+
+// get user details by username. Kept last so it cannot swallow the paths above.
+userRouter.get("/:username", userController.getSingleUserByUsername);
 
 export default userRouter;

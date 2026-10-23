@@ -31,7 +31,7 @@ const guestVisitorKey = (req: Request): string | undefined => {
     .digest("hex");
 };
 
-const recordPostView = catchAsync(async (req, res) => {
+const recordBlogView = catchAsync(async (req, res) => {
   const slug = String(req.params.slug);
 
   const totalViews = await recordView(slug, {
@@ -43,7 +43,7 @@ const recordPostView = catchAsync(async (req, res) => {
     sendResponse(res, {
       success: false,
       statusCode: httpStatus.NOT_FOUND,
-      message: "Post not found",
+      message: "Blog not found",
       data: null,
     });
     return;
@@ -58,5 +58,5 @@ const recordPostView = catchAsync(async (req, res) => {
 });
 
 export const viewController = {
-  recordPostView,
+  recordBlogView,
 };

@@ -32,6 +32,17 @@ const create = z.object({
     .strict(),
 });
 
+const updateStatus = z.object({
+  body: z
+    .object({
+      status: z.enum(["new", "read", "archived"], {
+        error: "Status must be one of new, read, archived",
+      }),
+    })
+    .strict(),
+});
+
 export const contactValidationSchema = {
   create,
+  updateStatus,
 };

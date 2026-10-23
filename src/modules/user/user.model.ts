@@ -108,6 +108,7 @@ const userSchema = new Schema<IUser, IUserModel>(
       type: Number,
       default: 0,
     },
+    // Stored as `totalPosts` for database compatibility; exposed as `totalBlogs`.
     totalPosts: {
       type: Number,
       default: 0,
@@ -131,6 +132,12 @@ const userSchema = new Schema<IUser, IUserModel>(
   },
   { timestamps: true },
 );
+
+// The field is stored as `totalPosts` so existing documents keep working, but
+// the API speaks `totalBlogs` and the client reads that name.
+userSchema.virtual("totalBlogs").get(function () {
+  return this.totalPosts;
+});
 
 userSchema.pre("find", function (next) {
   if (!this.getOptions()?.bypassMiddleware) {

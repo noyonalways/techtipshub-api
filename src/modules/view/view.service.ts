@@ -1,6 +1,6 @@
 import { JwtPayload } from "jsonwebtoken";
 import { Types } from "mongoose";
-import Post from "../post/post.model";
+import Blog from "../blog/blog.model";
 import View from "./view.model";
 
 export interface IViewerIdentity {
@@ -16,8 +16,8 @@ const isSameAuthor = (
 ) => String((author as { _id: Types.ObjectId })._id ?? author) === String(userId);
 
 /**
- * Record a view for `slug` once per reader and return the post's fresh view
- * total, or `null` when there is no post with that slug.
+ * Record a view for `slug` once per reader and return the blog's fresh view
+ * total, or `null` when there is no blog with that slug.
  *
  * Rules, kept deliberately simple so the number means one thing everywhere
  * ("distinct people who read this article"):
@@ -30,28 +30,29 @@ export const recordView = async (
   slug: string,
   identity: IViewerIdentity,
 ): Promise<number | null> => {
-  const post = await Post.findOne({ slug }).select("_id author totalViews");
-  if (!post) return null;
+  const blog = await Blog.findOne({ slug }).select("_id author totalViews");
+  if (!blog) return null;
 
   // Nothing to attribute: a guest without a key or a signed-in user.
   if (!identity.user?.email && !identity.visitorKey) {
-    return post.totalViews ?? 0;
+    return blog.totalViews ?? 0;
   }
 
   if (identity.user?.email) {
-    if (isSameAuthor(post.author, identity.user._id)) {
-      return post.totalViews ?? 0;
+    if (isSameAuthor(blog.author, identity.user._id)) {
+      return blog.totalViews ?? 0;
     }
 
     // Admin activity is not reader interest.
     if (identity.user.role === "Admin") {
-      return post.totalViews ?? 0;
+      return blog.totalViews ?? 0;
     }
   }
 
-  const query: Record<string, unknown> = { post: post._id };
+  // `post` is the stored field name on the view collection.
+  const query: Record<string, unknown> = { post: blog._id };
   if (identity.user?._id) {
-    // Signed-in readers are keyed by account: one view per person per post,
+    // Signed-in readers are keyed by account: one view per person per blog,
     // across devices and browsers.
     query.user = identity.user._id;
     query.visitorKey = `user:${String(identity.user._id)}`;
@@ -63,7 +64,7 @@ export const recordView = async (
   // the same reader resolve to one record instead of racing.
   try {
     await View.updateOne(
-      { post: post._id, visitorKey: query.visitorKey },
+      { post: blog._id, visitorKey: query.visitorKey },
       { $setOnInsert: { ...query, viewedAt: new Date() } },
       { upsert: true },
     );
@@ -73,8 +74,8 @@ export const recordView = async (
     if (upsertError?.code !== 11000) throw upsertError;
   }
 
-  const total = await View.countDocuments({ post: post._id });
-  await Post.updateOne({ _id: post._id }, { $set: { totalViews: total } });
+  const total = await View.countDocuments({ post: blog._id });
+  await Blog.updateOne({ _id: blog._id }, { $set: { totalViews: total } });
 
   return total;
 };

@@ -7,10 +7,11 @@ const viewSchema = new Schema<IView>(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
+    // Stored as `post` for database compatibility; it references a blog.
     post: {
       type: Schema.Types.ObjectId,
       ref: "Post",
-      required: [true, "Post Id is required"],
+      required: [true, "Blog Id is required"],
     },
     visitorKey: {
       type: String,
@@ -27,7 +28,7 @@ const viewSchema = new Schema<IView>(
   },
 );
 
-// One view per reader per post.
+// One view per reader per blog.
 //
 // Every record carries a `visitorKey`: the account id for signed-in readers and
 // the pseudonymous guest hash otherwise. That single field is what the unique

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const commentOnPost = z.object({
+const commentOnBlog = z.object({
   body: z.object({
     content: z
       .string({ error: "Content is required" })
@@ -22,6 +22,6 @@ const updateComment = z.object({
 });
 
 export const commentValidationSchema = {
-  commentOnPost,
+  commentOnBlog,
   updateComment,
 };

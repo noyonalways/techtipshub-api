@@ -8,6 +8,8 @@ import { commentValidationSchema } from "./comment.validation";
 
 const commentRouter: Router = Router();
 
+// Listing and moderation live under "/admin/comments".
+
 commentRouter.delete(
   "/:id",
   auth(USER_ROLE.USER, USER_ROLE.ADMIN),

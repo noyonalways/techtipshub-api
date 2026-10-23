@@ -55,7 +55,7 @@ const updateSocialLinks = catchAsync(async (req, res) => {
 const blockUser = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
 
-  const result = await userService.blockUser(id);
+  const result = await userService.blockUser(id, req.user.email);
 
   sendResponse(res, {
     success: true,
@@ -69,7 +69,7 @@ const blockUser = catchAsync<TRouteParams>(async (req, res) => {
 const unBlockUser = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
 
-  const result = await userService.unBlockUser(id);
+  const result = await userService.unBlockUser(id, req.user.email);
 
   sendResponse(res, {
     success: true,
@@ -83,7 +83,7 @@ const unBlockUser = catchAsync<TRouteParams>(async (req, res) => {
 const makeAdmin = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
 
-  const result = await userService.makeAdmin(id);
+  const result = await userService.makeAdmin(id, req.user.email);
 
   sendResponse(res, {
     success: true,
@@ -97,12 +97,38 @@ const makeAdmin = catchAsync<TRouteParams>(async (req, res) => {
 const deleteUserAccount = catchAsync<TRouteParams>(async (req, res) => {
   const { id } = req.params;
 
-  const result = await userService.deleteUserAccount(id);
+  const result = await userService.deleteUserAccount(id, req.user.email);
 
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
     message: "User account deleted successfully",
+    data: result,
+  });
+});
+
+const getDeletedUsers = catchAsync(async (req, res) => {
+  const { result, meta } = await userService.getDeletedUsers(req.query);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Deleted users retrieved successfully",
+    meta,
+    data: result,
+  });
+});
+
+const restoreUser = catchAsync<TRouteParams>(async (req, res) => {
+  const { id } = req.params;
+
+  const result = await userService.restoreUser(id, req.user.email);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message:
+      "User account restored. Its blogs, comments, views and votes were removed when the account was deleted, so the profile comes back empty.",
     data: result,
   });
 });
@@ -228,4 +254,6 @@ export const userController = {
   getFollowStatus,
   makeAdmin,
   deleteUserAccount,
+  getDeletedUsers,
+  restoreUser,
 };

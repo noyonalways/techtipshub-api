@@ -8,10 +8,11 @@ const voteSchema = new Schema<IVote>(
       ref: "User",
       required: [true, "User Id is required"],
     },
+    // Stored as `post` for database compatibility; it references a blog.
     post: {
       type: Schema.Types.ObjectId,
       ref: "Post",
-      required: [true, "Post Id is required"],
+      required: [true, "Blog Id is required"],
     },
     type: {
       type: String,
@@ -22,7 +23,7 @@ const voteSchema = new Schema<IVote>(
   { timestamps: true },
 );
 
-// Ensure a user can vote on a post only once (either upvote or downvote)
+// Ensure a user can vote on a blog only once (either upvote or downvote)
 // voteSchema.index({ post: 1, user: 1 }, { unique: true });
 
 const Vote = model<IVote>("Vote", voteSchema);

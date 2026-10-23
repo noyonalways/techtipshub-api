@@ -1,8 +1,8 @@
 import { model, Schema } from "mongoose";
-import { PostContentType } from "./post.constant";
-import { IPost } from "./post.interface";
+import { BlogContentType } from "./blog.constant";
+import { IBlog } from "./blog.interface";
 
-const postSchema = new Schema<IPost>(
+const blogSchema = new Schema<IBlog>(
   {
     author: {
       type: Schema.Types.ObjectId,
@@ -24,7 +24,7 @@ const postSchema = new Schema<IPost>(
     contentType: {
       type: String,
       enum: {
-        values: PostContentType,
+        values: BlogContentType,
         message: "{VALUE} is not a valid content type",
       },
       required: [true, "Content type is required"],
@@ -77,16 +77,18 @@ const postSchema = new Schema<IPost>(
   },
 );
 
-postSchema.pre("find", function (next) {
+blogSchema.pre("find", function (next) {
   this.find({ isDeleted: { $ne: true } });
   next();
 });
 
-postSchema.pre("findOne", function (next) {
+blogSchema.pre("findOne", function (next) {
   this.find({ isDeleted: { $ne: true } });
   next();
 });
 
-const Post = model<IPost>("Post", postSchema);
+// Model name and collection are the stored DB identifiers: keep them as "Post"
+// and "posts" so existing documents stay reachable.
+const Blog = model<IBlog>("Post", blogSchema, "posts");
 
-export default Post;
+export default Blog;

@@ -29,7 +29,16 @@ const update = z.object({
     .strict(),
 });
 
+/**
+ * Admin delete changes nothing the caller supplies, so the body is left alone;
+ * the schema exists so the route reports invalid bodies like its siblings do.
+ */
+const deleteCategory = z.object({
+  body: z.object({}).passthrough(),
+});
+
 export const categoryValidationSchema = {
   create,
   update,
+  deleteCategory,
 };

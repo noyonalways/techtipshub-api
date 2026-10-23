@@ -2,7 +2,7 @@ import { Document, Types } from "mongoose";
 
 export type TContentType = "html" | "markdown" | "text";
 
-export interface IPost extends Document {
+export interface IBlog extends Document {
   author: Types.ObjectId;
   title: string;
   slug: string;
@@ -17,4 +17,6 @@ export interface IPost extends Document {
   totalViews: number;
   totalComments: number;
   isDeleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }

@@ -3,10 +3,11 @@ import { IComment } from "./comment.interface";
 
 const commentSchema = new Schema<IComment>(
   {
+    // Stored as `post` for database compatibility; it references a blog.
     post: {
       type: Schema.ObjectId,
       ref: "Post",
-      required: [true, "Post reference is required"],
+      required: [true, "Blog reference is required"],
     },
     user: {
       type: Schema.ObjectId,

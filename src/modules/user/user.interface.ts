@@ -5,12 +5,7 @@ export type TUserRole = "User" | "Admin";
 export type TUserStatus = "Active" | "Blocked";
 export type TUserGender = "Male" | "Female" | "Other";
 export type TSocialPlatform =
-  | "Facebook"
-  | "Instagram"
-  | "Linkedin"
-  | "Twitter"
-  | "Github"
-  | "Youtube";
+  "Facebook" | "Instagram" | "Linkedin" | "Twitter" | "Github" | "Youtube";
 
 export type TSocialLink = {
   platform: TSocialPlatform;
@@ -32,12 +27,17 @@ export interface IUser extends Document {
   status: TUserStatus;
   totalFollowers: number;
   totalFollowing: number;
+  /** Stored DB field name for the user's blog count. */
   totalPosts: number;
+  /** Virtual alias of `totalPosts` exposed by the API. */
+  totalBlogs: number;
   socialLinks: TSocialLink[];
   location: string;
   dateOfBirth: Date;
   isVerified: boolean;
   isDeleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface IUserModel extends Model<IUser> {
