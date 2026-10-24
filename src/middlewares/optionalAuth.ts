@@ -8,9 +8,9 @@ import { catchAsync } from "../utils";
  * and simply continues when it is missing or invalid.
  *
  * Use this on routes that must stay open to guests but behave differently for
- * signed-in users (e.g. a single post shows a preview to guests and the full
- * article to logged-in users). Never use it where a user is required — use the
- * `auth()` middleware for that.
+ * signed-in users (e.g. a single article records a view for a member but not
+ * for a guest, and a member's own article is excluded from their view count).
+ * Never use it where a user is required — use the `auth()` middleware for that.
  */
 const optionalAuth = catchAsync(async (req, _res, next) => {
   const token = req.headers.authorization?.split(" ")[1];

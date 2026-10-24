@@ -49,7 +49,7 @@ blogRouter.get(
 // soft-deleted blogs, restore, forced delete and admin edits live under
 // "/admin/blogs".
 
-// get single blog by blog slug (open to guests; full body for logged-in users)
+// get single blog by blog slug (open to everyone; the whole article is returned)
 blogRouter.get("/:slug", optionalAuth, blogController.getSingleBlog);
 
 // delete a blog by user using blog id

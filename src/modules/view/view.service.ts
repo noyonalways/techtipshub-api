@@ -79,3 +79,18 @@ export const recordView = async (
 
   return total;
 };
+
+/**
+ * Recount `slug` from its view records without recording anything.
+ *
+ * Used on reads that must not count as a view (a guest fetch, a cached or
+ * prerendered request): the article response still reports a total, and that
+ * total should agree with the one the next signed-in reader gets. Returns
+ * `null` when there is no blog with that slug.
+ */
+export const recomputeTotalViews = async (slug: string): Promise<number | null> => {
+  const blog = await Blog.findOne({ slug }).select("_id");
+  if (!blog) return null;
+
+  return View.countDocuments({ post: blog._id });
+};

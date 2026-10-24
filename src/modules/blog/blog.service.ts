@@ -10,7 +10,7 @@ import { IComment } from "../comment/comment.interface";
 import Comment from "../comment/comment.model";
 import Follower from "../follower/follower.model";
 import User from "../user/user.model";
-import { recordView } from "../view/view.service";
+import { recordView, recomputeTotalViews } from "../view/view.service";
 import View from "../view/view.model";
 import Vote from "../vote/vote.model";
 import { blogSearchableFields } from "./blog.constant";
@@ -384,8 +384,17 @@ const getBlogByProperty = async (key: string, value: string) => {
 };
 
 // get a single blog by slug.
-// Guests get a preview: the article body is withheld and `isLocked` is true.
-// Logged-in users get the full article and a view is recorded for them.
+//
+// Everyone gets the whole article, guests included. This endpoint is read by
+// the website's build and by its per-request render of a signed-in reader, and
+// the answer is cached and shared between them; a response that changed shape
+// with the caller's token would put a locked copy in front of members (or a
+// full copy in front of guests) depending on who happened to ask first.
+// Whether the body is shown is therefore a rendering decision made by the
+// website, which knows who is reading.
+//
+// A logged-in user still has the view recorded here, and gets the reconciled
+// total back.
 const getSingleBlog = async (
   userData: JwtPayload | undefined,
   slug: string,
@@ -409,18 +418,22 @@ const getSingleBlog = async (
       throw new AppError(httpStatus.NOT_FOUND, "Blog not found");
     }
 
-    // Guest visitors can see everything but the article body
+    // Guest visitors get the article as stored. Nobody is signed in to record
+    // a read for, so the counter is whatever the document already holds, but
+    // the total is still recomputed from the view records so the number the
+    // website shows does not drift from the one a member sees.
     if (!userData?.email) {
+      const totalViews = await recomputeTotalViews(slug);
+      const article = blog.toObject() as IBlog & { isLocked?: boolean };
+
       await session.commitTransaction();
       session.endSession();
 
-      const preview = blog.toObject() as Partial<IBlog> & {
-        isLocked?: boolean;
+      return {
+        ...article,
+        totalViews: totalViews ?? blog.totalViews,
+        isLocked: false,
       };
-      preview.isLocked = true;
-      delete preview.content;
-
-      return preview;
     }
 
     // Get the current logged-in user

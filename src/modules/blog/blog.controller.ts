@@ -58,7 +58,8 @@ const getLoggedInUserBlogs = catchAsync(async (req, res) => {
 });
 
 // get a single blog by slug.
-// Guests receive a preview; logged-in users receive the full article.
+// Returns the whole article to guests as well; the website decides how much of
+// it to show. A signed-in reader also has their view counted.
 const getSingleBlog = catchAsync<TRouteParams>(async (req, res) => {
   const { slug } = req.params;
   const result = await blogService.getSingleBlog(req.user, slug);
