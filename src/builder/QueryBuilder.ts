@@ -150,7 +150,13 @@ class QueryBuilder<T> {
         delete queryObj.category;
       }
     }
-    this.modelQuery = this.modelQuery.find(queryObj as FilterQuery<T>);
+    // `.find()` replaces the filter rather than merging with it, so the base
+    // filter (the model's own defaults, such as Blog's `isDeleted`) is folded
+    // back in. Without this, a request carrying any query key would drop it and
+    // let deleted rows back onto the list.
+    this.modelQuery = this.modelQuery.find({
+      $and: [this.modelQuery.getFilter(), queryObj],
+    } as FilterQuery<T>);
 
     return this;
   }

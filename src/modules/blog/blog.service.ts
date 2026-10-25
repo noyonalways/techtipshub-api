@@ -90,9 +90,15 @@ const create = async (userData: JwtPayload, payload: IBlog) => {
 };
 
 // get all blogs (for anyone to see title small part of description, category, views, upvote, downvote etc)
+//
+// The filter is written out rather than left to the model's find hook: this is
+// the feed, and a deleted article must not reappear just because the page asked
+// for one (`.find()` replaces the filter, so an empty one would drop the hook's).
 const getAll = async (query: Record<string, unknown>) => {
   const blogQuery = new QueryBuilder(
-    Blog.find({}).populate("author").populate("category"),
+    Blog.find({ isDeleted: { $ne: true } })
+      .populate("author")
+      .populate("category"),
     query,
   ).search(blogSearchableFields);
 
@@ -309,6 +315,7 @@ const getFollowingUsersBlogs = async (
   const blogQuery = new QueryBuilder(
     Blog.find({
       author: { $in: followingUserIds },
+      isDeleted: { $ne: true },
     })
       .populate("author")
       .populate("category"),
